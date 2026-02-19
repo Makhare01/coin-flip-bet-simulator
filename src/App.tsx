@@ -1,9 +1,7 @@
+import { Root } from "./components/root";
+
 export function App() {
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="font-medium">Hello World</div>
-    </div>
-  )
+    return <Root />;
 }
 
-export default App
+export default App;
