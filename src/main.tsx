@@ -1,8 +1,13 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 
-import "./index.css"
 import App from "./App.tsx"
+import "./index.css"
+
+if (import.meta.env.DEV) {
+  const { worker } = await import('./mocks/index.ts')
+  await worker.enableMocking()
+}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
