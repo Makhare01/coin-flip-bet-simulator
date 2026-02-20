@@ -1,12 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS' | 'HEAD';
-export type HandlerPath = `${HttpMethod} ${string}`;
+import { http } from "./http";
 
-export type Handler = (options: RequestInit) => Promise<{ success: boolean; status: number; data?: any }>;
-
-export const handlers: Record<HandlerPath, Handler> = {
-    'POST /api/v1/game/flop-coin': (options) => {
-        const { betAmount, selectedCrypto } = JSON.parse(options.body as string)
+export const handlers = [
+    http.post('/api/v1/game/flop-coin', (options) => {
+        const { betAmount, selectedCrypto } = JSON.parse(options?.body as string)
 
         const responseTime = Math.floor(Math.random() * 2700) + 300;
 
@@ -28,5 +24,5 @@ export const handlers: Record<HandlerPath, Handler> = {
                 })
             }, responseTime)
         })
-    },
-}
+    }),
+]
