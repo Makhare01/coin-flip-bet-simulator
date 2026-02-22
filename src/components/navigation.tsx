@@ -1,7 +1,11 @@
+import { useUser } from '@/hooks/use-user';
 import { Coins } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
 
 export const Navigation = () => {
+    const { userSettings } = useUser();
+    const balances: [string, number][] = Object.entries(userSettings?.balances ?? {});
+
     return (
         <header className="w-full bg-card border-b border-gray-800">
             <nav className="container mx-auto flex items-center justify-between py-5">
@@ -13,11 +17,15 @@ export const Navigation = () => {
                 </div>
 
                 <div className='flex items-center'>
-                    <Tabs defaultValue="btc">
+                    <Tabs defaultValue={userSettings?.preferredCrypto} onValueChange={(value) => {
+                        console.log(value);
+                    }}>
                         <TabsList>
-                            <TabsTrigger value="btc">BTC</TabsTrigger>
-                            <TabsTrigger value="eth">ETH</TabsTrigger>
-                            <TabsTrigger value="sol">SOL</TabsTrigger>
+                            {balances.map(([crypto, balance]) => (
+                                <TabsTrigger key={crypto} value={crypto}>
+                                    {crypto.toUpperCase()} {balance.toFixed(2)}
+                                </TabsTrigger>
+                            ))}
                         </TabsList>
                     </Tabs>
                 </div>
