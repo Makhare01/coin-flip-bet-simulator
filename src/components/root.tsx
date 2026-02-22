@@ -1,40 +1,26 @@
-import { useMutation } from "@tanstack/react-query";
+import { useUser } from "@/hooks/use-user";
 import { Navigation } from "./navigation";
-import { Button } from "./ui/button";
+import { StartPlaying } from "./start-playing";
+import { Spinner } from "./ui/spinner";
 
 export const Root = () => {
-    const $flopCoin = useMutation({
-        mutationKey: ['flop-coin'],
-        mutationFn: (data: { betAmount: number; selectedCrypto: string }) =>
-            fetch("/api/v1/game/flop-coin", {
-                method: "POST",
-                body: JSON.stringify(data),
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            }).then(res => res.json()),
-        onSuccess: (data) => {
-            console.log(data);
-        },
-        onError: (error) => {
-            console.error(error);
-        },
-    });
+    const { userInfo, isLoading } = useUser();
+
+    if (isLoading) {
+        return (
+            <div className="flex h-screen w-screen items-center justify-center">
+                <Spinner className="size-10 text-primary" />
+            </div>
+        );
+    }
+
+    if (!userInfo) {
+        return <StartPlaying />;
+    }
 
     return (
         <div className="w-full h-full">
             <Navigation />
-            {$flopCoin.isPending && <div>Loading...</div>}
-            <Button
-                onClick={() => {
-                    $flopCoin.mutate({
-                        betAmount: 10,
-                        selectedCrypto: "btc",
-                    });
-                }}
-            >
-                Flip Coin
-            </Button>
         </div>
     );
 };

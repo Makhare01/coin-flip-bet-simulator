@@ -10,7 +10,7 @@ class LocalStorageAdapter {
         }
     }
 
-    getItem<T extends string>(key: string): T | null {
+    getItem<T>(key: string): T | null {
         const storage = this.#getStorage();
         if (!storage) return null;
         try {
