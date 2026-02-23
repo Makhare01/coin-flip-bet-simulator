@@ -1,6 +1,6 @@
 import { getUserBetHistoryStatistics } from "@/api/history"
-import { useUserSettingsStore } from "@/store/user-settings"
 import type { UserBetStatistics as UserBetStatisticsType } from "@/storage/history"
+import { useUserSettingsStore } from "@/store/user-settings"
 import { useQuery } from "@tanstack/react-query"
 import { BarChart3, TrendingDown, TrendingUp, Trophy, Wallet } from "lucide-react"
 
@@ -33,6 +33,8 @@ export const UserBetStatistics = () => {
     const $stats = useQuery({
         queryKey: ["user-bet-history-statistics"],
         queryFn: getUserBetHistoryStatistics,
+        staleTime: 0,
+        gcTime: 0,
     })
 
     if ($stats.error) {
