@@ -1,3 +1,4 @@
+import { addBetHistory } from "@/storage/history";
 import { updateUserBalance } from "@/storage/user";
 import type { UserSettings } from "@/utils/_types";
 import { randomDelay } from "../_helpers";
@@ -46,12 +47,25 @@ export const gameHandlers = [
                 })
             }
 
+            const payout = isWin ? betAmount * 2 : 0;
+
+            addBetHistory({
+                id: crypto.randomUUID(),
+                userId: userSettings.id,
+                userName: userSettings.name,
+                crypto: preferredCrypto,
+                betAmount,
+                betResult: isWin ? 'win' : 'loss',
+                payout,
+                timestamp: Date.now(),
+            })
+
             resolve({
                 success: true,
                 status: 200,
                 data: {
                     isWin,
-                    payout: isWin ? betAmount * 2 : 0,
+                    payout,
                     transactionId: crypto.randomUUID(),
                     timestamp: new Date().toISOString(),
                     updatedBalance: updatedUser?.balances[preferredCrypto],

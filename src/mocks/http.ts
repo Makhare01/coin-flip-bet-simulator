@@ -8,14 +8,20 @@ export type HttpMethod =
   | "HEAD";
 export type HandlerPath = `${HttpMethod} ${string}`;
 
+export type HandlerRequest = RequestInit & {
+  url: string;
+  pathname: string;
+  searchParams: URLSearchParams;
+};
+
 export type Handler = (
-  options?: RequestInit
+  options?: HandlerRequest
 ) => Promise<{ success: boolean; status: number; data?: unknown }>;
 
 export type MiddlewareContext = Record<string, unknown>;
 
 export type HandlerWithContext = (
-  options?: RequestInit,
+  options?: HandlerRequest,
   context?: MiddlewareContext
 ) => Promise<{ success: boolean; status: number; data?: unknown }>;
 
