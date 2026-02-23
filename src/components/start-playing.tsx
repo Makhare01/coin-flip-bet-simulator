@@ -28,6 +28,7 @@ export const StartPlaying = () => {
             onSuccess: () => {
                 setError("");
                 setName("");
+                queryClient.invalidateQueries({ queryKey: ["user-bet-history-statistics"] })
             },
             onError: (error) => {
                 setError(error.message);

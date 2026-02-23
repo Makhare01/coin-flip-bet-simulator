@@ -27,7 +27,7 @@ export const BetSettings = () => {
     const isBetAmountInvalid = Number(betAmount) <= 0 || isNaN(Number(betAmount));
 
 
-    const { placeSingleBet, isBetting, lastResult, error } = useBetSimulation({
+    const { placeSingleBet, isBetting, lastResult, error, lastBetAmount } = useBetSimulation({
         baseBetAmount: isBetAmountInvalid ? 0 : Number(betAmount),
         preferredCrypto,
         martingaleEnabled,
@@ -57,7 +57,7 @@ export const BetSettings = () => {
                         }
                     }}
                     isError={!!error}
-                    betAmount={Number(betAmount)}
+                    betAmount={lastBetAmount}
                     preferredCrypto={preferredCrypto}
                 />
                 <BetAmount

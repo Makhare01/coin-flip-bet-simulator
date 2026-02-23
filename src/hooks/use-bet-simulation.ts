@@ -23,6 +23,7 @@ export const useBetSimulation = ({
 }: UseBetSimulationParams) => {
     const queryClient = useQueryClient()
 
+    const [lastBetAmount, setLastBetAmount] = useState<number>(baseBetAmount)
     const [lastResult, setLastResult] = useState<null | boolean>(null)
     const [error, setError] = useState<string | null>(null)
     const isAutoBetting = useUserSettingsStore((state) => state.isAutoBetting);
@@ -48,15 +49,16 @@ export const useBetSimulation = ({
             return { previousUser }
         },
         onSuccess: (data) => {
-            const { isWin, updatedBalance, updatedUser } = data
+            const { isWin, updatedBalance, updatedUser, lastBetAmount: newLastBetAmount } = data
 
             setLastResult(isWin)
+            setLastBetAmount(newLastBetAmount)
 
             queryClient.setQueryData(["user-info"], updatedUser)
-            queryClient.invalidateQueries({ queryKey: ["history"] })
+            queryClient.invalidateQueries({ queryKey: ["user-bet-history-statistics"] })
 
             // Handle Martingale
-            if (martingaleEnabled) {
+            if (martingaleEnabled && isAutoBetting) {
                 if (isWin) {
                     setBetAmount(baseBetAmount.toString())
                 } else {
@@ -94,17 +96,12 @@ export const useBetSimulation = ({
         $flipCoin.mutate({ betAmount: baseBetAmount, preferredCrypto })
     }, [$flipCoin, baseBetAmount, initialBalance, isAutoBetting, setIsAutoBetting, preferredCrypto])
 
-    // Reset bet amount if base changes
-    // useEffect(() => {
-    //     setCurrentBetAmount(baseBetAmount)
-    // }, [baseBetAmount])
-
     return {
         placeSingleBet,
         isAutoBetting,
         isBetting: $flipCoin.isPending,
-        // currentBetAmount,
         lastResult,
-        error
+        error,
+        lastBetAmount,
     }
 }

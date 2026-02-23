@@ -70,6 +70,7 @@ export const gameHandlers = [
                     timestamp: new Date().toISOString(),
                     updatedBalance: updatedUser?.balances[preferredCrypto],
                     updatedUser,
+                    lastBetAmount: betAmount,
                 }
             })
         })
