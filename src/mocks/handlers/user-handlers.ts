@@ -1,58 +1,19 @@
-import { StorageKeys } from "@/lib/enums";
-import { storage } from "@/storage/local-storage-adapter";
+import { getUsers, removeUserId, setUserId, setUsers } from "@/storage/user";
 import type { UserSettings } from "@/utils/_types";
 import { DEFAULT_BALANCES } from "@/utils/constants";
-import { randomDelay } from "./_helpers";
-import { http } from "./http";
-import { userSettingsMiddleware } from "./middlewares";
+import { randomDelay } from "../_helpers";
+import { http } from "../http";
+import { userSettingsMiddleware } from "../middlewares";
 
-export const handlers = [
-    http.post('/api/v1/game/flop-coin', userSettingsMiddleware, async (options, context) => {
-        await randomDelay();
-        const userSettings = context?.userSettings as UserSettings
-
-        if (!userSettings) {
-            return new Promise((_, reject) => {
-                reject(new Error('Unauthorized'))
-            })
-        }
-
-        const { betAmount } = JSON.parse(options?.body as string)
-        const { preferredCrypto } = userSettings
-
-        return new Promise((resolve) => {
-            const isWin = Math.random() < 0.5;
-
-            resolve({
-                success: true,
-                status: 200,
-                data: {
-                    isWin,
-                    payout: isWin ? betAmount * 2 : 0,
-                    result: isWin ? 'win' : 'lose',
-                    selectedCrypto: preferredCrypto,
-                    transactionId: crypto.randomUUID(),
-                    timestamp: new Date().toISOString(),
-                }
-            })
-        })
-    }),
-    http.get("/api/v1/user/info", async () => {
+export const userHandlers = [
+    http.get("/api/v1/user/info", userSettingsMiddleware, async (_, context) => {
         await randomDelay();
 
-        const userId = storage.getItem(StorageKeys.USER_ID);
+        const currentUser = context?.userSettings as UserSettings
 
         return new Promise((resolve, reject) => {
-            if (!userId) {
-                reject(new Error("Unauthorized"));
-            }
-
-            const users = storage.getItem<UserSettings[]>(StorageKeys.USERS);
-
-            const currentUser = users?.find(user => user.id === userId);
-
             if (!currentUser) {
-                reject(new Error("User not found"));
+                return reject(new Error("User not found"));
             }
 
             resolve({
@@ -71,11 +32,11 @@ export const handlers = [
                 reject(new Error('Name is required'))
             }
 
-            const users = storage.getItem<UserSettings[]>(StorageKeys.USERS)
+            const users = getUsers();
             const existingUser = users?.find(user => user.name === name)
 
             if (existingUser) {
-                storage.setItem(StorageKeys.USER_ID, existingUser.id)
+                setUserId(existingUser.id)
                 return resolve({
                     success: true,
                     status: 200,
@@ -92,8 +53,8 @@ export const handlers = [
                 balances: DEFAULT_BALANCES
             }
 
-            storage.setItem(StorageKeys.USER_ID, userId)
-            storage.setItem(StorageKeys.USERS, [...(storage.getItem<UserSettings[]>(StorageKeys.USERS) ?? []), user])
+            setUserId(userId)
+            setUsers([...(getUsers() ?? []), user])
 
             return resolve({
                 success: true,
@@ -113,23 +74,25 @@ export const handlers = [
         }
 
         const { preferredCrypto } = JSON.parse(options?.body as string)
-        const users = storage.getItem<UserSettings[]>(StorageKeys.USERS) ?? []
+        const users = getUsers() ?? []
         const userIndex = users.findIndex(user => user.id === userSettings.id)
         users[userIndex].preferredCrypto = preferredCrypto
-        storage.setItem(StorageKeys.USERS, users)
+        setUsers(users)
+
+        const updatedUser = users[userIndex]
 
         return new Promise((resolve) => {
             resolve({
                 success: true,
                 status: 200,
-                data: preferredCrypto
+                data: updatedUser
             })
         })
     }),
     http.delete('/api/v1/user/logout', async () => {
         await randomDelay();
 
-        storage.removeItem(StorageKeys.USER_ID);
+        removeUserId()
         return new Promise((resolve) => {
             resolve({
                 success: true,
