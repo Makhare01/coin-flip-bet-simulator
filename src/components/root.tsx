@@ -4,6 +4,7 @@ import { BetSettings } from "./game/bet-settings";
 import { Navigation } from "./navigation";
 import { StartPlaying } from "./start-playing";
 import { Spinner } from "./ui/spinner";
+import { UserBetStatistics } from "./user-bet-statistics";
 
 export const Root = () => {
     const { userInfo, isLoading } = useUser();
@@ -26,6 +27,7 @@ export const Root = () => {
 
             <main className="container mx-auto py-10">
                 <BetSettings />
+                <UserBetStatistics />
                 <BetHistory />
             </main>
         </div>
