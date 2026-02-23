@@ -13,7 +13,7 @@ type HistoryFiltersProps = {
 
 export const HistoryFilters = ({ search, setSearch, betResult, setBetResult }: HistoryFiltersProps) => {
     return (
-        <div className="flex items-center gap-2">
+        <div className="flex md:flex-row flex-col md:items-center gap-2">
             <InputGroup>
                 <InputGroupInput
                     type="text"
@@ -32,7 +32,7 @@ export const HistoryFilters = ({ search, setSearch, betResult, setBetResult }: H
                 value={betResult}
                 onValueChange={(value) => setBetResult(value as BetResult)}
             >
-                <SelectTrigger className="h-11! bg-input! w-[200px]">
+                <SelectTrigger className="h-11! bg-input! md:w-[200px] w-full">
                     <SelectValue placeholder="All Bets" />
                 </SelectTrigger>
                 <SelectContent>

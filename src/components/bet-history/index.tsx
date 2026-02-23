@@ -45,7 +45,7 @@ export const BetHistory = () => {
 
     return (
         <div className="rounded-md border mt-10">
-            <div className="flex items-center justify-between px-2 py-4 bg-card rounded-t-lg border-b-">
+            <div className="flex md:flex-row flex-col md:items-center md:justify-between px-2 py-4 bg-card gap-2 rounded-t-lg border-b-">
                 <div className="flex items-center">
                     <HistoryIcon className="size-8 text-primary" />
                     <h1 className="text-xl font-bold ml-2">Bet History</h1>
