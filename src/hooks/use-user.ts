@@ -1,51 +1,20 @@
-import { getUserInfo, logoutAction, setUserFavoriteCryptoAction } from "@/api/user";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+    getUserInfo
+} from "@/api/user"
+
+import { useQuery } from "@tanstack/react-query"
+
+const USER_QUERY_KEY = ["user-info"]
 
 export const useUser = () => {
-    const queryClient = useQueryClient();
-
-    const $userInfo = useQuery({
-        queryKey: ['user-info'],
+    const $getUserInfo = useQuery({
+        queryKey: USER_QUERY_KEY,
         queryFn: getUserInfo,
-        gcTime: 0,
+        staleTime: Infinity,
     })
-
-    const $logout = useMutation({
-        mutationKey: ["logout"],
-        mutationFn: logoutAction,
-    })
-
-    const $setUserFavoriteCrypto = useMutation({
-        mutationKey: ["set-user-favorite-crypto"],
-        mutationFn: setUserFavoriteCryptoAction,
-    })
-
-    const setUserFavoriteCrypto = (crypto: string) => {
-        $setUserFavoriteCrypto.mutate(crypto, {
-            onSuccess: () => {
-                $userInfo.refetch();
-            },
-            onError: (error) => {
-                console.error(error);
-            },
-        })
-    }
-
-    const revalidateUserInfo = () => {
-        queryClient.invalidateQueries({ queryKey: ["user-info"] });
-    };
-
-    const clearUserInfo = () => {
-        queryClient.setQueryData(["user-info"], null);
-    };
 
     return {
-        isLoading: $userInfo.isLoading,
-        userInfo: $userInfo.data,
-        revalidateUserInfo,
-        clearUserInfo,
-        $logout,
-        setUserFavoriteCrypto,
-        isSettingUserFavoriteCrypto: $setUserFavoriteCrypto.isPending,
-    };
+        userInfo: $getUserInfo.data,
+        isLoading: $getUserInfo.isLoading,
+    }
 }

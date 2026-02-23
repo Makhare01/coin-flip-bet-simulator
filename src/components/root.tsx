@@ -1,4 +1,5 @@
 import { useUser } from "@/hooks/use-user";
+import { BetSettings } from "./game/bet-settings";
 import { Navigation } from "./navigation";
 import { StartPlaying } from "./start-playing";
 import { Spinner } from "./ui/spinner";
@@ -21,6 +22,10 @@ export const Root = () => {
     return (
         <div className="w-full h-full">
             <Navigation />
+
+            <main className="container mx-auto py-10">
+                <BetSettings />
+            </main>
         </div>
     );
 };

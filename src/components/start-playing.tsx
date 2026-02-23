@@ -6,15 +6,17 @@ import { Input } from "./ui/input"
 import { Spinner } from "./ui/spinner"
 
 export const StartPlaying = () => {
-    const queryClient = useQueryClient();
+    const queryClient = useQueryClient()
+
+    const $startPlaying = useMutation({
+        mutationFn: startPlayingAction,
+        onSuccess: (updatedUser) => {
+            queryClient.setQueryData(["user-info"], updatedUser)
+        },
+    })
 
     const [name, setName] = useState<string>("")
     const [error, setError] = useState<string>("")
-
-    const $startPlaying = useMutation({
-        mutationKey: ["start-playing"],
-        mutationFn: startPlayingAction,
-    });
 
     const handleStartPlaying = () => {
         if (name.trim() === "") {
@@ -24,7 +26,6 @@ export const StartPlaying = () => {
 
         $startPlaying.mutate(name, {
             onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: ['user-info'] })
                 setError("");
                 setName("");
             },
@@ -63,10 +64,9 @@ export const StartPlaying = () => {
                             }}
                             className="h-10"
                             aria-invalid={!!error}
-                            aria-describedby={error ? "name-error" : undefined}
                         />
                         {error && (
-                            <p id="name-error" className="mt-2 text-sm text-destructive">
+                            <p className="mt-2 text-sm text-destructive">
                                 {error}
                             </p>
                         )}

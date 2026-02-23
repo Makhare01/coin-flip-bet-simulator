@@ -1,20 +1,21 @@
-import { placeBet } from "@/api/betApi"
-import type { Cryptos } from "@/utils/_types"
+import { flipCoin } from "@/api/game"
+import { useUserSettingsStore } from "@/store/user-settings"
+import type { UserSettings } from "@/utils/_types"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useState } from "react"
 
 type UseBetSimulationParams = {
-    currency: Cryptos
     baseBetAmount: number
+    preferredCrypto: string
     martingaleEnabled: boolean
+    initialBalance: number
     stopWin?: number
     stopLoss?: number
-    initialBalance: number
 }
 
 export const useBetSimulation = ({
-    currency,
     baseBetAmount,
+    preferredCrypto,
     martingaleEnabled,
     stopWin,
     stopLoss,
@@ -22,38 +23,45 @@ export const useBetSimulation = ({
 }: UseBetSimulationParams) => {
     const queryClient = useQueryClient()
 
-    const [isAutoBetting, setIsAutoBetting] = useState(false)
-    const [currentBetAmount, setCurrentBetAmount] = useState(baseBetAmount)
+    // const [currentBetAmount, setCurrentBetAmount] = useState(baseBetAmount)
     const [lastResult, setLastResult] = useState<null | boolean>(null)
+    const [error, setError] = useState<string | null>(null)
+    const isAutoBetting = useUserSettingsStore((state) => state.isAutoBetting);
+    const setIsAutoBetting = useUserSettingsStore(
+        (state) => state.setIsAutoBetting
+    );
+    const setBetAmount = useUserSettingsStore((state) => state.setBetAmount);
 
-    const autoBetRef = useRef(false)
-    const accumulatedProfitRef = useRef(0)
+    const $flipCoin = useMutation({
+        mutationKey: ['flip-coin'],
+        mutationFn: flipCoin,
+        onMutate: () => {
+            setError(null)
+            queryClient.cancelQueries({ queryKey: ["user-info"] })
 
-    const mutation = useMutation({
-        mutationKey: ['bet-simulation'],
-        mutationFn: ({ amount }: { amount: number }) =>
-            placeBet({ currency, amount }),
+            const previousUser = queryClient.getQueryData(["user-info"])
+
+            queryClient.setQueryData(["user-info"], (old: UserSettings) => ({
+                ...old,
+                balances: { ...old.balances, [preferredCrypto]: old.balances[preferredCrypto] - baseBetAmount }
+            }))
+
+            return { previousUser }
+        },
         onSuccess: (data) => {
-            const { win, updatedBalance } = data
+            const { isWin, updatedBalance, updatedUser } = data
 
-            setLastResult(win)
+            setLastResult(isWin)
 
-            const profitChange = win
-                ? currentBetAmount
-                : -currentBetAmount
-
-            accumulatedProfitRef.current += profitChange
-
-            // Update cached user data
-            queryClient.invalidateQueries({ queryKey: ["user"] })
+            queryClient.setQueryData(["user-info"], updatedUser)
             queryClient.invalidateQueries({ queryKey: ["history"] })
 
             // Handle Martingale
             if (martingaleEnabled) {
-                if (win) {
-                    setCurrentBetAmount(baseBetAmount)
+                if (isWin) {
+                    setBetAmount(baseBetAmount.toString())
                 } else {
-                    setCurrentBetAmount((prev) => prev * 2)
+                    setBetAmount((Number(baseBetAmount) * 2).toString())
                 }
             }
 
@@ -65,53 +73,39 @@ export const useBetSimulation = ({
                 (stopLoss && totalProfit <= -stopLoss)
 
             if (shouldStop) {
-                stopAutoBet()
+                setIsAutoBetting(false)
                 return
             }
-
-            // Continue auto-bet if enabled
-            if (autoBetRef.current) {
-                triggerBet()
-            }
+        },
+        onError: (error) => {
+            setError(error.message)
         }
     })
 
-    const triggerBet = useCallback(() => {
-        if (mutation.isPending) return
-
-        mutation.mutate({ amount: currentBetAmount })
-    }, [mutation, currentBetAmount])
-
     const placeSingleBet = useCallback(() => {
-        triggerBet()
-    }, [triggerBet])
+        if (baseBetAmount === 0 || baseBetAmount >= initialBalance) {
+            setError("Insufficient balance")
+            if (isAutoBetting) {
+                setIsAutoBetting(false)
+            }
+            return
+        }
+        if ($flipCoin.isPending) return
 
-    const startAutoBet = useCallback(() => {
-        if (isAutoBetting) return
-
-        autoBetRef.current = true
-        setIsAutoBetting(true)
-        triggerBet()
-    }, [isAutoBetting, triggerBet])
-
-    const stopAutoBet = useCallback(() => {
-        autoBetRef.current = false
-        setIsAutoBetting(false)
-        setCurrentBetAmount(baseBetAmount)
-    }, [baseBetAmount])
+        $flipCoin.mutate({ betAmount: baseBetAmount, preferredCrypto })
+    }, [$flipCoin, baseBetAmount, initialBalance, isAutoBetting, setIsAutoBetting, preferredCrypto])
 
     // Reset bet amount if base changes
-    useEffect(() => {
-        setCurrentBetAmount(baseBetAmount)
-    }, [baseBetAmount])
+    // useEffect(() => {
+    //     setCurrentBetAmount(baseBetAmount)
+    // }, [baseBetAmount])
 
     return {
         placeSingleBet,
-        startAutoBet,
-        stopAutoBet,
         isAutoBetting,
-        isBetting: mutation.isPending,
-        currentBetAmount,
-        lastResult
+        isBetting: $flipCoin.isPending,
+        // currentBetAmount,
+        lastResult,
+        error
     }
 }
