@@ -23,7 +23,6 @@ export const useBetSimulation = ({
 }: UseBetSimulationParams) => {
     const queryClient = useQueryClient()
 
-    // const [currentBetAmount, setCurrentBetAmount] = useState(baseBetAmount)
     const [lastResult, setLastResult] = useState<null | boolean>(null)
     const [error, setError] = useState<string | null>(null)
     const isAutoBetting = useUserSettingsStore((state) => state.isAutoBetting);

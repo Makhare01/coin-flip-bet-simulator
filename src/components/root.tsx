@@ -1,4 +1,5 @@
 import { useUser } from "@/hooks/use-user";
+import { BetHistory } from "./bet-history";
 import { BetSettings } from "./game/bet-settings";
 import { Navigation } from "./navigation";
 import { StartPlaying } from "./start-playing";
@@ -25,6 +26,7 @@ export const Root = () => {
 
             <main className="container mx-auto py-10">
                 <BetSettings />
+                <BetHistory />
             </main>
         </div>
     );

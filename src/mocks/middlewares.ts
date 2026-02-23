@@ -1,8 +1,8 @@
 import { getCurrentUser } from "@/storage/user";
-import type { HandlerWithContext } from "./http";
+import type { HandlerRequest, HandlerWithContext } from "./http";
 
 export const userSettingsMiddleware = (handler: HandlerWithContext) => {
-  return (options?: RequestInit) => {
+  return (options?: HandlerRequest) => {
     const userSettings = getCurrentUser();
     return handler(options, { userSettings });
   };
